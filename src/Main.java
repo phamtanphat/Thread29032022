@@ -53,31 +53,7 @@ public class Main {
             }
         });
 
-        Thread threadC = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (myFlag) {
-                    for (int i = 1; i <= 50;) {
-                        if (myFlag.index == 3) {
-                            c = a + b;
-                            System.out.println(String.format("C : %d", c));
-                            myFlag.index = 1;
-                            myFlag.notifyAll();
-                            i++;
-                        } else {
-                            try {
-                                myFlag.wait();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
         threadB.start();
         threadA.start();
-        threadC.start();
     }
 }
