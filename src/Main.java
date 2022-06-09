@@ -1,59 +1,39 @@
-import java.util.concurrent.TimeUnit;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Main {
-    static int a, b, c;
-    static MyFlag myFlag;
-
     public static void main(String[] args) {
-        a = b = c = 0;
-        myFlag = new MyFlag(1);
-        Thread threadA = new Thread(new Runnable() {
+
+        handleData().thenAccept(new Consumer<Integer>() {
             @Override
-            public void run() {
-                synchronized (myFlag) {
-                    for (int i = 1; i <= 50; ) {
-                        if (myFlag.index == 1) {
-                            a = i;
-                            System.out.println(String.format("A : %d", a));
-                            myFlag.index = 2;
-                            myFlag.notifyAll();
-                            i++;
-                        } else {
-                            try {
-                                myFlag.wait();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
+            public void accept(Integer integer) {
 
             }
-        });
-        Thread threadB = new Thread(new Runnable() {
+        }).exceptionally(new Function<Throwable, Void>() {
             @Override
-            public void run() {
-                synchronized (myFlag) {
-                    for (int i = 1; i <= 50; ) {
-                       if (myFlag.index == 2) {
-                           b = i;
-                           System.out.println(String.format("B : %d", b));
-                           myFlag.index = 3;
-                           myFlag.notifyAll();
-                           i++;
-                       } else {
-                           try {
-                               myFlag.wait();
-                           } catch (InterruptedException e) {
-                               e.printStackTrace();
-                           }
-                       }
-                    }
-                }
+            public Void apply(Throwable throwable) {
+                System.out.println(throwable.getMessage().toLowerCase(Locale.ROOT));
+                return null;
             }
         });
+    }
 
-        threadB.start();
-        threadA.start();
+    private static CompletableFuture<Integer> handleData () {
+        ExecutorService threadPool = Executors.newCachedThreadPool();
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        threadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(Thread.currentThread().getName());
+                int a = 10;
+                int b = 5;
+                future.completeExceptionally(new Exception("Lỗi"));
+            }
+        });
+        return future;
     }
 }
